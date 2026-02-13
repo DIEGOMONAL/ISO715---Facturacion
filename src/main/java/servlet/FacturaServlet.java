@@ -1,7 +1,8 @@
 package servlet;
 
-import dao.FacturaDAO;
+import dao.*;
 import model.Factura;
+import model.FacturaDetalle;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,21 +19,25 @@ import java.util.List;
 public class FacturaServlet extends HttpServlet {
 
     private FacturaDAO facturaDAO;
+    private ClienteDAO clienteDAO;
+    private CondicionPagoDAO condicionPagoDAO;
+    private VendedorDAO vendedorDAO;
+    private ArticuloDAO articuloDAO;
 
     @Override
     public void init() {
         facturaDAO = new FacturaDAO();
+        clienteDAO = new ClienteDAO();
+        condicionPagoDAO = new CondicionPagoDAO();
+        vendedorDAO = new VendedorDAO();
+        articuloDAO = new ArticuloDAO();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "listar";
-        }
-
+        if (action == null) action = "listar";
         try {
             switch (action) {
                 case "nuevo":
@@ -41,11 +46,17 @@ public class FacturaServlet extends HttpServlet {
                 case "editar":
                     mostrarFormularioEditar(request, response);
                     break;
+                case "ver":
+                    verFactura(request, response);
+                    break;
                 case "eliminar":
-                    eliminar(request, response);
+                    facturaDAO.eliminar(Integer.parseInt(request.getParameter("id")));
+                    response.sendRedirect(request.getContextPath() + "/facturas");
                     break;
                 default:
-                    listar(request, response);
+                    List<Factura> lista = facturaDAO.listarTodas();
+                    request.setAttribute("listaFacturas", lista);
+                    request.getRequestDispatcher("/facturas/listaFacturas.jsp").forward(request, response);
                     break;
             }
         } catch (SQLException e) {
@@ -56,39 +67,28 @@ public class FacturaServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
-
         try {
-            switch (action) {
-                case "insertar":
-                    insertar(request, response);
-                    break;
-                case "actualizar":
-                    actualizar(request, response);
-                    break;
-                default:
-                    response.sendRedirect("facturas");
-                    break;
+            if ("insertar".equals(action)) {
+                insertar(request, response);
+            } else if ("actualizar".equals(action)) {
+                actualizar(request, response);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/facturas");
             }
         } catch (SQLException e) {
             throw new ServletException(e);
         }
     }
 
-    private void listar(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, ServletException, IOException {
-        List<Factura> lista = facturaDAO.listarTodas();
-        request.setAttribute("listaFacturas", lista);
-        request.getRequestDispatcher("/facturas/listaFacturas.jsp").forward(request, response);
-    }
-
     private void mostrarFormularioNuevo(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws SQLException, ServletException, IOException {
         request.setAttribute("factura", null);
+        request.setAttribute("clientes", clienteDAO.listarActivos());
+        request.setAttribute("condicionesPago", condicionPagoDAO.listarActivos());
+        request.setAttribute("vendedores", vendedorDAO.listarActivos());
+        request.setAttribute("articulos", articuloDAO.listarActivos());
         request.getRequestDispatcher("/facturas/formFactura.jsp").forward(request, response);
     }
 
@@ -97,56 +97,67 @@ public class FacturaServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Factura factura = facturaDAO.obtenerPorId(id);
         request.setAttribute("factura", factura);
+        request.setAttribute("clientes", clienteDAO.listarActivos());
+        request.setAttribute("condicionesPago", condicionPagoDAO.listarActivos());
+        request.setAttribute("vendedores", vendedorDAO.listarActivos());
+        request.setAttribute("articulos", articuloDAO.listarActivos());
         request.getRequestDispatcher("/facturas/formFactura.jsp").forward(request, response);
     }
 
-    private void insertar(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-        String cliente = request.getParameter("cliente");
-        Date fecha = Date.valueOf(request.getParameter("fecha"));
-        double total = Double.parseDouble(request.getParameter("total"));
+    private void verFactura(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        Factura factura = facturaDAO.obtenerPorId(id);
+        request.setAttribute("factura", factura);
+        request.getRequestDispatcher("/facturas/verFactura.jsp").forward(request, response);
+    }
 
-        String horaParam = request.getParameter("hora");
-        Time hora = null;
-        if (horaParam != null && !horaParam.isEmpty()) {
-            // el input type="time" devuelve HH:mm
-            if (horaParam.length() == 5) {
-                horaParam = horaParam + ":00";
-            }
-            hora = Time.valueOf(horaParam);
-        }
-
-        Factura f = new Factura(cliente, fecha, hora, total);
+    private void insertar(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+        Factura f = construirFacturaDesdeRequest(request);
         facturaDAO.insertar(f);
-        response.sendRedirect("facturas");
+        response.sendRedirect(request.getContextPath() + "/facturas");
     }
 
-    private void actualizar(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String cliente = request.getParameter("cliente");
-        Date fecha = Date.valueOf(request.getParameter("fecha"));
-        double total = Double.parseDouble(request.getParameter("total"));
-
-        String horaParam = request.getParameter("hora");
-        Time hora = null;
-        if (horaParam != null && !horaParam.isEmpty()) {
-            if (horaParam.length() == 5) {
-                horaParam = horaParam + ":00";
-            }
-            hora = Time.valueOf(horaParam);
-        }
-
-        Factura f = new Factura(id, cliente, fecha, hora, total);
+    private void actualizar(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+        Factura f = construirFacturaDesdeRequest(request);
+        f.setId(Integer.parseInt(request.getParameter("id")));
         facturaDAO.actualizar(f);
-        response.sendRedirect("facturas");
+        response.sendRedirect(request.getContextPath() + "/facturas");
     }
 
-    private void eliminar(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        facturaDAO.eliminar(id);
-        response.sendRedirect("facturas");
+    private Factura construirFacturaDesdeRequest(HttpServletRequest request) {
+        Factura f = new Factura();
+        f.setClienteId(Integer.parseInt(request.getParameter("clienteId")));
+        f.setCondicionPagoId(Integer.parseInt(request.getParameter("condicionPagoId")));
+        f.setVendedorId(Integer.parseInt(request.getParameter("vendedorId")));
+        f.setFecha(Date.valueOf(request.getParameter("fecha")));
+        String horaParam = request.getParameter("hora");
+        if (horaParam != null && !horaParam.isEmpty()) {
+            f.setHora(Time.valueOf(horaParam.length() == 5 ? horaParam + ":00" : horaParam));
+        }
+        String[] articuloIds = request.getParameterValues("articuloId");
+        if (articuloIds != null) {
+            double total = 0;
+            for (int i = 0; i < articuloIds.length; i++) {
+                int articuloId = Integer.parseInt(articuloIds[i]);
+                int cantidad = parseIntSafe(request.getParameterValues("cantidad")[i], 1);
+                double precio = parseDoubleSafe(request.getParameterValues("precioUnitario")[i], 0);
+                FacturaDetalle d = new FacturaDetalle(0, articuloId, cantidad, precio);
+                d.setSubtotal(cantidad * precio);
+                f.addDetalle(d);
+                total += d.getSubtotal();
+            }
+            f.setTotal(total);
+        }
+        return f;
+    }
+
+    private int parseIntSafe(String s, int def) {
+        if (s == null || s.trim().isEmpty()) return def;
+        try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return def; }
+    }
+    private double parseDoubleSafe(String s, double def) {
+        if (s == null || s.trim().isEmpty()) return def;
+        try { return Double.parseDouble(s.trim().replace(",", ".")); } catch (NumberFormatException e) { return def; }
     }
 }
-
