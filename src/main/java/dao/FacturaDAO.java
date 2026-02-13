@@ -38,6 +38,44 @@ public class FacturaDAO {
     public FacturaDAO() {
     }
 
+    public List<Factura> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
+        String base = "SELECT f.id, f.cliente_id, f.condicion_pago_id, f.vendedor_id, f.fecha, f.hora, f.total, " +
+                "c.nombre_comercial AS cliente_nombre, cp.descripcion AS condicion_pago_desc, v.nombre AS vendedor_nombre " +
+                "FROM facturas f " +
+                "LEFT JOIN clientes c ON f.cliente_id = c.id " +
+                "LEFT JOIN condiciones_pago cp ON f.condicion_pago_id = cp.id " +
+                "LEFT JOIN vendedores v ON f.vendedor_id = v.id ";
+        StringBuilder sql = new StringBuilder(base);
+        List<Object> params = new ArrayList<>();
+        if (buscar != null && !buscar.trim().isEmpty()) {
+            try {
+                int id = Integer.parseInt(buscar.trim());
+                sql.append(" WHERE f.id = ? ");
+                params.add(id);
+            } catch (NumberFormatException ignored) { }
+        }
+        String col = "f.fecha";
+        if ("id".equalsIgnoreCase(ordenarPor)) col = "f.id";
+        else if ("fecha".equalsIgnoreCase(ordenarPor)) col = "f.fecha";
+        else if ("total".equalsIgnoreCase(ordenarPor)) col = "f.total";
+        else if ("cliente".equalsIgnoreCase(ordenarPor)) col = "c.nombre_comercial";
+        String dir = "desc".equalsIgnoreCase(orden) ? "DESC" : "ASC";
+        sql.append(" ORDER BY ").append(col).append(" ").append(dir);
+
+        List<Factura> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Factura f = mapearFactura(rs);
+                    f.setDetalles(obtenerDetalles(con, f.getId()));
+                    lista.add(f);
+                }
+            }
+        }
+        return lista;
+    }
+
     public void insertar(Factura f) throws SQLException {
         Connection con = null;
         try {

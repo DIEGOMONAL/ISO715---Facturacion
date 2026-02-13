@@ -49,6 +49,44 @@ public class ClienteDAO {
         return listarConQuery(SELECT_ACTIVOS_SQL);
     }
 
+    public List<Cliente> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado FROM clientes WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (buscar != null && !buscar.trim().isEmpty()) {
+            String t = buscar.trim();
+            try {
+                int id = Integer.parseInt(t);
+                sql.append(" AND id = ?");
+                params.add(id);
+            } catch (NumberFormatException e) {
+                sql.append(" AND nombre_comercial LIKE ?");
+                params.add("%" + t + "%");
+            }
+        }
+        String col = "nombre_comercial";
+        if ("id".equalsIgnoreCase(ordenarPor)) col = "id";
+        else if ("nombre".equalsIgnoreCase(ordenarPor) || "nombre_comercial".equalsIgnoreCase(ordenarPor)) col = "nombre_comercial";
+        else if ("rnc".equalsIgnoreCase(ordenarPor) || "rnc_cedula".equalsIgnoreCase(ordenarPor)) col = "rnc_cedula";
+        String dir = "desc".equalsIgnoreCase(orden) ? "DESC" : "ASC";
+        sql.append(" ORDER BY ").append(col).append(" ").append(dir);
+        return listarConQueryParams(sql.toString(), params);
+    }
+
+    private List<Cliente> listarConQueryParams(String sql, List<Object> params) throws SQLException {
+        List<Cliente> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) ps.setInt(i + 1, (Integer) p);
+                else ps.setString(i + 1, (String) p);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
     private List<Cliente> listarConQuery(String sql) throws SQLException {
         List<Cliente> lista = new ArrayList<>();
         try (Connection con = ConexionBD.getConnection();

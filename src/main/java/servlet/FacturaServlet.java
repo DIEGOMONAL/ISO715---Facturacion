@@ -54,8 +54,13 @@ public class FacturaServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/facturas");
                     break;
                 default:
-                    List<Factura> lista = facturaDAO.listarTodas();
+                    String buscar = request.getParameter("buscar");
+                    String ordenar = request.getParameter("ordenar");
+                    String[] ord = parseOrdenar(ordenar, "fecha", "desc");
+                    List<Factura> lista = facturaDAO.listarConFiltros(buscar, ord[0], ord[1]);
                     request.setAttribute("listaFacturas", lista);
+                    request.setAttribute("buscar", buscar);
+                    request.setAttribute("ordenar", ordenar != null ? ordenar : "fecha_desc");
                     request.getRequestDispatcher("/facturas/listaFacturas.jsp").forward(request, response);
                     break;
             }
@@ -156,8 +161,13 @@ public class FacturaServlet extends HttpServlet {
         if (s == null || s.trim().isEmpty()) return def;
         try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return def; }
     }
+    private String[] parseOrdenar(String ordenar, String defCol, String defDir) {
+        if (ordenar == null || !ordenar.contains("_")) return new String[]{defCol, defDir};
+        int i = ordenar.lastIndexOf("_");
+        return new String[]{ordenar.substring(0, i), ordenar.substring(i + 1)};
+    }
     private double parseDoubleSafe(String s, double def) {
         if (s == null || s.trim().isEmpty()) return def;
-        try { return Double.parseDouble(s.trim().replace(",", ".")); } catch (NumberFormatException e) { return def; }
+        try { return Double.parseDouble(s.trim().replace(",", "")); } catch (NumberFormatException e) { return def; }
     }
 }

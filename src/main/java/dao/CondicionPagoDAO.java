@@ -48,6 +48,44 @@ public class CondicionPagoDAO {
         return listarConQuery(SELECT_ACTIVOS_SQL);
     }
 
+    public List<CondicionPago> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT id, descripcion, cantidad_dias, estado FROM condiciones_pago WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (buscar != null && !buscar.trim().isEmpty()) {
+            String t = buscar.trim();
+            try {
+                int id = Integer.parseInt(t);
+                sql.append(" AND id = ?");
+                params.add(id);
+            } catch (NumberFormatException e) {
+                sql.append(" AND descripcion LIKE ?");
+                params.add("%" + t + "%");
+            }
+        }
+        String col = "descripcion";
+        if ("id".equalsIgnoreCase(ordenarPor)) col = "id";
+        else if ("descripcion".equalsIgnoreCase(ordenarPor)) col = "descripcion";
+        else if ("dias".equalsIgnoreCase(ordenarPor) || "cantidad_dias".equalsIgnoreCase(ordenarPor)) col = "cantidad_dias";
+        String dir = "desc".equalsIgnoreCase(orden) ? "DESC" : "ASC";
+        sql.append(" ORDER BY ").append(col).append(" ").append(dir);
+        return listarConQueryParams(sql.toString(), params);
+    }
+
+    private List<CondicionPago> listarConQueryParams(String sql, List<Object> params) throws SQLException {
+        List<CondicionPago> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) ps.setInt(i + 1, (Integer) p);
+                else ps.setString(i + 1, (String) p);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
     private List<CondicionPago> listarConQuery(String sql) throws SQLException {
         List<CondicionPago> lista = new ArrayList<>();
         try (Connection con = ConexionBD.getConnection();

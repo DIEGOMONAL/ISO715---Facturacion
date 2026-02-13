@@ -31,8 +31,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="precioUnitario" class="form-label">Precio Unitario (RD$)</label>
-                                <input type="number" step="0.01" class="form-control" id="precioUnitario" name="precioUnitario"
-                                       value="<%= esEdicion ? articulo.getPrecioUnitario() : "" %>" required>
+                                <input type="text" inputmode="decimal" class="form-control" id="precioUnitario" name="precioUnitario"
+                                       value="<%= esEdicion ? new java.text.DecimalFormat("0.00").format(articulo.getPrecioUnitario()) : "" %>" required placeholder="0.00">
                             </div>
                             <div class="mb-3">
                                 <label for="estado" class="form-label">Estado</label>

@@ -44,8 +44,13 @@ public class ArticuloServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/articulos");
                     break;
                 default:
-                    List<Articulo> lista = articuloDAO.listarTodos();
+                    String buscar = request.getParameter("buscar");
+                    String ordenar = request.getParameter("ordenar");
+                    String[] ord = parseOrdenar(ordenar, "descripcion", "asc");
+                    List<Articulo> lista = articuloDAO.listarConFiltros(buscar, ord[0], ord[1]);
                     request.setAttribute("listaArticulos", lista);
+                    request.setAttribute("buscar", buscar);
+                    request.setAttribute("ordenar", ordenar != null ? ordenar : "descripcion_asc");
                     request.getRequestDispatcher("/articulos/listaArticulos.jsp").forward(request, response);
                     break;
             }
@@ -63,7 +68,7 @@ public class ArticuloServlet extends HttpServlet {
             if ("insertar".equals(action)) {
                 Articulo a = new Articulo(
                         request.getParameter("descripcion"),
-                        Double.parseDouble(request.getParameter("precioUnitario").replace(",", ".")),
+                        parseDoubleSafe(request.getParameter("precioUnitario")),
                         request.getParameter("estado") != null ? request.getParameter("estado") : "ACTIVO"
                 );
                 articuloDAO.insertar(a);
@@ -71,7 +76,7 @@ public class ArticuloServlet extends HttpServlet {
                 Articulo a = new Articulo(
                         Integer.parseInt(request.getParameter("id")),
                         request.getParameter("descripcion"),
-                        Double.parseDouble(request.getParameter("precioUnitario").replace(",", ".")),
+                        parseDoubleSafe(request.getParameter("precioUnitario")),
                         request.getParameter("estado") != null ? request.getParameter("estado") : "ACTIVO"
                 );
                 articuloDAO.actualizar(a);
@@ -80,5 +85,17 @@ public class ArticuloServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+    }
+
+    private String[] parseOrdenar(String ordenar, String defCol, String defDir) {
+        if (ordenar == null || !ordenar.contains("_")) return new String[]{defCol, defDir};
+        int i = ordenar.lastIndexOf("_");
+        return new String[]{ordenar.substring(0, i), ordenar.substring(i + 1)};
+    }
+
+    private double parseDoubleSafe(String s) {
+        if (s == null || s.trim().isEmpty()) return 0;
+        String v = s.trim().replace(",", "");
+        try { return Double.parseDouble(v); } catch (NumberFormatException e) { return 0; }
     }
 }

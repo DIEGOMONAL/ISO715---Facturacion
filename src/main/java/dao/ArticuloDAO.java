@@ -48,6 +48,54 @@ public class ArticuloDAO {
         return listarConQuery(SELECT_ACTIVOS_SQL);
     }
 
+    /**
+     * Lista con búsqueda y ordenamiento.
+     * @param buscar término de búsqueda (ID o descripción), puede ser null/vacío
+     * @param ordenarPor id, descripcion, precio_unitario
+     * @param orden asc o desc
+     */
+    public List<Articulo> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT id, descripcion, precio_unitario, estado FROM articulos WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (buscar != null && !buscar.trim().isEmpty()) {
+            String t = buscar.trim();
+            try {
+                int id = Integer.parseInt(t);
+                sql.append(" AND id = ?");
+                params.add(id);
+            } catch (NumberFormatException e) {
+                sql.append(" AND descripcion LIKE ?");
+                params.add("%" + t + "%");
+            }
+        }
+
+        String col = "descripcion";
+        if ("id".equalsIgnoreCase(ordenarPor)) col = "id";
+        else if ("precio".equalsIgnoreCase(ordenarPor) || "precio_unitario".equalsIgnoreCase(ordenarPor)) col = "precio_unitario";
+        else if ("descripcion".equalsIgnoreCase(ordenarPor)) col = "descripcion";
+        String dir = "desc".equalsIgnoreCase(orden) ? "DESC" : "ASC";
+        sql.append(" ORDER BY ").append(col).append(" ").append(dir);
+
+        return listarConQueryParams(sql.toString(), params);
+    }
+
+    private List<Articulo> listarConQueryParams(String sql, List<Object> params) throws SQLException {
+        List<Articulo> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) ps.setInt(i + 1, (Integer) p);
+                else ps.setString(i + 1, (String) p);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
     private List<Articulo> listarConQuery(String sql) throws SQLException {
         List<Articulo> lista = new ArrayList<>();
         try (Connection con = ConexionBD.getConnection();

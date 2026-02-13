@@ -31,8 +31,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="porcientoComision" class="form-label">Porciento de Comisión (%)</label>
-                                <input type="number" step="0.01" min="0" max="100" class="form-control" id="porcientoComision" name="porcientoComision"
-                                       value="<%= esEdicion ? vendedor.getPorcientoComision() : "0" %>" required>
+                                <input type="text" inputmode="decimal" class="form-control" id="porcientoComision" name="porcientoComision"
+                                       value="<%= esEdicion ? new java.text.DecimalFormat("0.00").format(vendedor.getPorcientoComision()) : "0" %>" required placeholder="0.00">
                             </div>
                             <div class="mb-3">
                                 <label for="estado" class="form-label">Estado</label>

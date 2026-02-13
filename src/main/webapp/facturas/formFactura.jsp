@@ -98,13 +98,13 @@
                                     <select class="form-select articulo-select" name="articuloId" required>
                                         <option value="">-- Artículo --</option>
                                         <% for (Articulo a : articulos) { %>
-                                        <option value="<%= a.getId() %>" data-precio="<%= a.getPrecioUnitario() %>" <%= d.getArticuloId() == a.getId() ? "selected" : "" %>><%= a.getDescripcion() %> (RD$ <%= String.format("%.2f", a.getPrecioUnitario()) %>)</option>
+                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>" <%= d.getArticuloId() == a.getId() ? "selected" : "" %>><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>)</option>
                                         <% } %>
                                     </select>
                                 </td>
                                 <td><input type="number" min="1" class="form-control cantidad-input" name="cantidad" value="<%= d.getCantidad() %>" required></td>
-                                <td><input type="number" step="0.01" class="form-control precio-input" name="precioUnitario" value="<%= d.getPrecioUnitario() %>" required></td>
-                                <td class="subtotal-cell"><%= String.format("%.2f", d.getSubtotal()) %></td>
+                                <td><input type="text" inputmode="decimal" class="form-control precio-input" name="precioUnitario" value="<%= new java.text.DecimalFormat("0.00").format(d.getPrecioUnitario()) %>" required></td>
+                                <td class="subtotal-cell"><%= new java.text.DecimalFormat("#,##0.00").format(d.getSubtotal()) %></td>
                                 <td><button type="button" class="btn btn-sm btn-outline-danger btn-eliminar">Quitar</button></td>
                             </tr>
                             <% }
@@ -114,12 +114,12 @@
                                     <select class="form-select articulo-select" name="articuloId" required>
                                         <option value="">-- Artículo --</option>
                                         <% for (Articulo a : articulos) { %>
-                                        <option value="<%= a.getId() %>" data-precio="<%= a.getPrecioUnitario() %>"><%= a.getDescripcion() %> (RD$ <%= String.format("%.2f", a.getPrecioUnitario()) %>)</option>
+                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>"><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>)</option>
                                         <% } %>
                                     </select>
                                 </td>
                                 <td><input type="number" min="1" class="form-control cantidad-input" name="cantidad" value="1" required></td>
-                                <td><input type="number" step="0.01" class="form-control precio-input" name="precioUnitario" required></td>
+                                <td><input type="text" inputmode="decimal" class="form-control precio-input" name="precioUnitario" required placeholder="0.00"></td>
                                 <td class="subtotal-cell">0.00</td>
                                 <td><button type="button" class="btn btn-sm btn-outline-danger btn-eliminar">Quitar</button></td>
                             </tr>
@@ -149,11 +149,14 @@
     const btnAgregar = document.getElementById('btnAgregar');
     const totalSpan = document.getElementById('totalFactura');
 
+    function formatoMoneda(n) {
+        return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
     function calcularSubtotal(row) {
         const cant = parseFloat(row.querySelector('.cantidad-input').value) || 0;
         const prec = parseFloat(row.querySelector('.precio-input').value) || 0;
         const sub = cant * prec;
-        row.querySelector('.subtotal-cell').textContent = sub.toFixed(2);
+        row.querySelector('.subtotal-cell').textContent = formatoMoneda(sub);
         return sub;
     }
     function actualizarTotal() {
@@ -161,7 +164,7 @@
         tbody.querySelectorAll('tr').forEach(function(r) {
             t += calcularSubtotal(r);
         });
-        totalSpan.textContent = t.toFixed(2);
+        totalSpan.textContent = formatoMoneda(t);
     }
     function initFila(row) {
         const sel = row.querySelector('.articulo-select');

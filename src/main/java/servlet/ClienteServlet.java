@@ -44,8 +44,13 @@ public class ClienteServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/clientes");
                     break;
                 default:
-                    List<Cliente> lista = clienteDAO.listarTodos();
+                    String buscar = request.getParameter("buscar");
+                    String ordenar = request.getParameter("ordenar");
+                    String[] ord = parseOrdenar(ordenar, "nombre_comercial", "asc");
+                    List<Cliente> lista = clienteDAO.listarConFiltros(buscar, ord[0], ord[1]);
                     request.setAttribute("listaClientes", lista);
+                    request.setAttribute("buscar", buscar);
+                    request.setAttribute("ordenar", ordenar != null ? ordenar : "nombre_comercial_asc");
                     request.getRequestDispatcher("/clientes/listaClientes.jsp").forward(request, response);
                     break;
             }
@@ -82,5 +87,11 @@ public class ClienteServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+    }
+
+    private String[] parseOrdenar(String ordenar, String defCol, String defDir) {
+        if (ordenar == null || !ordenar.contains("_")) return new String[]{defCol, defDir};
+        int i = ordenar.lastIndexOf("_");
+        return new String[]{ordenar.substring(0, i), ordenar.substring(i + 1)};
     }
 }

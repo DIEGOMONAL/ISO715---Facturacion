@@ -46,13 +46,13 @@
                     <tr>
                         <td><%= d.getArticuloDescripcion() != null ? d.getArticuloDescripcion() : "-" %></td>
                         <td><%= d.getCantidad() %></td>
-                        <td>RD$ <%= String.format("%.2f", d.getPrecioUnitario()) %></td>
-                        <td>RD$ <%= String.format("%.2f", d.getSubtotal()) %></td>
+                        <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(d.getPrecioUnitario()) %></td>
+                        <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(d.getSubtotal()) %></td>
                     </tr>
                     <% } %>
                     </tbody>
                 </table>
-                <div class="text-end"><strong>Total: RD$ <%= String.format("%.2f", factura.getTotal()) %></strong></div>
+                <div class="text-end"><strong>Total: RD$ <%= new java.text.DecimalFormat("#,##0.00").format(factura.getTotal()) %></strong></div>
                 <% } %>
             </div>
         </div>

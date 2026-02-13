@@ -78,14 +78,14 @@
                             <td><%= f.getFecha() %></td>
                             <td><%= f.getCondicionPagoDescripcion() %></td>
                             <td><%= f.getVendedorNombre() %></td>
-                            <td>RD$ <%= String.format("%.2f", f.getTotal()) %></td>
+                            <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(f.getTotal()) %></td>
                             <td><a href="${pageContext.request.contextPath}/facturas?action=ver&id=<%= f.getId() %>" class="btn btn-sm btn-outline-primary">Ver</a></td>
                         </tr>
                         <% } %>
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-3"><strong>Total facturado: RD$ <%= String.format("%.2f", totalGeneral) %></strong></div>
+                <div class="mt-3"><strong>Total facturado: RD$ <%= new java.text.DecimalFormat("#,##0.00").format(totalGeneral) %></strong></div>
                 <% } else { %>
                 <p class="text-muted mb-0">No hay facturas para este cliente en el rango de fechas seleccionado.</p>
                 <% } %>

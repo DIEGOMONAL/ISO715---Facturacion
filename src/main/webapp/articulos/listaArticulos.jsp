@@ -3,6 +3,9 @@
 <%@ page import="model.Articulo" %>
 <%
     List<Articulo> lista = (List<Articulo>) request.getAttribute("listaArticulos");
+    String buscar = (String) request.getAttribute("buscar");
+    String ordenar = (String) request.getAttribute("ordenar");
+    if (ordenar == null) ordenar = "descripcion_asc";
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,6 +25,25 @@
             </div>
             <a href="${pageContext.request.contextPath}/articulos?action=nuevo" class="btn btn-primary flex-shrink-0">Nuevo artículo</a>
         </div>
+        <form method="get" class="filtros-bar d-flex flex-wrap gap-2 align-items-end">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text">Buscar</span>
+                <input type="text" class="form-control" name="buscar" placeholder="ID o descripción" value="<%= buscar != null ? buscar : "" %>">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </div>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <label class="mb-0">Ordenar:</label>
+                <select name="ordenar" class="form-select form-select-sm" style="width: auto; min-width: 200px;">
+                    <option value="id_asc" <%= "id_asc".equals(ordenar) ? "selected" : "" %>>ID (Ascendente)</option>
+                    <option value="id_desc" <%= "id_desc".equals(ordenar) ? "selected" : "" %>>ID (Descendente)</option>
+                    <option value="descripcion_asc" <%= "descripcion_asc".equals(ordenar) ? "selected" : "" %>>Descripción (Ascendente)</option>
+                    <option value="descripcion_desc" <%= "descripcion_desc".equals(ordenar) ? "selected" : "" %>>Descripción (Descendente)</option>
+                    <option value="precio_asc" <%= "precio_asc".equals(ordenar) ? "selected" : "" %>>Precio (Ascendente)</option>
+                    <option value="precio_desc" <%= "precio_desc".equals(ordenar) ? "selected" : "" %>>Precio (Descendente)</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Aplicar</button>
+            </div>
+        </form>
         <div class="card card-custom">
             <div class="card-body">
                 <% if (lista != null && !lista.isEmpty()) { %>
@@ -41,7 +63,7 @@
                         <tr>
                             <td><%= a.getId() %></td>
                             <td><%= a.getDescripcion() %></td>
-                            <td>RD$ <%= String.format("%.2f", a.getPrecioUnitario()) %></td>
+                            <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %></td>
                             <td><span class="badge badge-status <%= "ACTIVO".equals(a.getEstado()) ? "bg-success" : "bg-secondary" %>"><%= a.getEstado() %></span></td>
                             <td class="text-end">
                                 <a href="${pageContext.request.contextPath}/articulos?action=editar&id=<%= a.getId() %>" class="btn btn-sm btn-outline-secondary me-1">Editar</a>

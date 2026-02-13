@@ -44,8 +44,13 @@ public class CondicionPagoServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/condicionesPago");
                     break;
                 default:
-                    List<CondicionPago> lista = condicionPagoDAO.listarTodos();
+                    String buscar = request.getParameter("buscar");
+                    String ordenar = request.getParameter("ordenar");
+                    String[] ord = parseOrdenar(ordenar, "descripcion", "asc");
+                    List<CondicionPago> lista = condicionPagoDAO.listarConFiltros(buscar, ord[0], ord[1]);
                     request.setAttribute("listaCondicionesPago", lista);
+                    request.setAttribute("buscar", buscar);
+                    request.setAttribute("ordenar", ordenar != null ? ordenar : "descripcion_asc");
                     request.getRequestDispatcher("/condicionesPago/listaCondicionesPago.jsp").forward(request, response);
                     break;
             }
@@ -82,6 +87,11 @@ public class CondicionPagoServlet extends HttpServlet {
         }
     }
 
+    private String[] parseOrdenar(String ordenar, String defCol, String defDir) {
+        if (ordenar == null || !ordenar.contains("_")) return new String[]{defCol, defDir};
+        int i = ordenar.lastIndexOf("_");
+        return new String[]{ordenar.substring(0, i), ordenar.substring(i + 1)};
+    }
     private int parseIntSafe(String s, int def) {
         if (s == null || s.trim().isEmpty()) return def;
         try {
