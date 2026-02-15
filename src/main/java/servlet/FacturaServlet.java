@@ -5,6 +5,7 @@ import model.Factura;
 import model.FacturaDetalle;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class FacturaServlet extends HttpServlet {
     private CondicionPagoDAO condicionPagoDAO;
     private VendedorDAO vendedorDAO;
     private ArticuloDAO articuloDAO;
+    private AuditoriaDAO auditoriaDAO;
 
     @Override
     public void init() {
@@ -31,6 +33,7 @@ public class FacturaServlet extends HttpServlet {
         condicionPagoDAO = new CondicionPagoDAO();
         vendedorDAO = new VendedorDAO();
         articuloDAO = new ArticuloDAO();
+        auditoriaDAO = new AuditoriaDAO();
     }
 
     @Override
@@ -50,7 +53,14 @@ public class FacturaServlet extends HttpServlet {
                     verFactura(request, response);
                     break;
                 case "eliminar":
-                    facturaDAO.eliminar(Integer.parseInt(request.getParameter("id")));
+                    int idElim = Integer.parseInt(request.getParameter("id"));
+                    facturaDAO.eliminar(idElim);
+                    HttpSession ses = request.getSession(false);
+                    if (ses != null) {
+                        Integer uid = (Integer) ses.getAttribute("usuarioId");
+                        String uname = (String) ses.getAttribute("usuario");
+                        if (uid != null) auditoriaDAO.registrar(uid, uname, "ELIMINAR", "facturas", idElim, "Factura anulada");
+                    }
                     response.sendRedirect(request.getContextPath() + "/facturas");
                     break;
                 default:

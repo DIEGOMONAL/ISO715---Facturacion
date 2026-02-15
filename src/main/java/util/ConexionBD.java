@@ -73,12 +73,54 @@ public class ConexionBD {
                     "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
                     ")");
 
-            // Tabla usuarios (para control de acceso)
+            // Tabla usuarios (rol, estado PENDING/ACTIVO)
             st.executeUpdate("CREATE TABLE IF NOT EXISTS usuarios (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "usuario VARCHAR(50) NOT NULL UNIQUE, " +
                     "password VARCHAR(100) NOT NULL, " +
-                    "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
+                    "nombre_completo VARCHAR(150), " +
+                    "rol VARCHAR(20) NOT NULL DEFAULT 'CAJERO', " +
+                    "estado VARCHAR(20) NOT NULL DEFAULT 'PENDING', " +
+                    "fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "aprobado_por INT NULL" +
+                    ")");
+            // Migrar tabla usuarios existente (añadir columnas si faltan)
+            try { st.executeUpdate("ALTER TABLE usuarios ADD COLUMN rol VARCHAR(20) DEFAULT 'CAJERO'"); } catch (SQLException ignored) {}
+            try { st.executeUpdate("ALTER TABLE usuarios ADD COLUMN nombre_completo VARCHAR(150)"); } catch (SQLException ignored) {}
+            try { st.executeUpdate("ALTER TABLE usuarios ADD COLUMN fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP"); } catch (SQLException ignored) {}
+            try { st.executeUpdate("ALTER TABLE usuarios ADD COLUMN aprobado_por INT"); } catch (SQLException ignored) {}
+            try { st.executeUpdate("UPDATE usuarios SET rol='ADMIN', estado='ACTIVO' WHERE usuario='admin'"); } catch (SQLException ignored) {}
+
+            // Tabla empresa (configuración)
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS empresa (" +
+                    "id INT PRIMARY KEY DEFAULT 1, " +
+                    "rnc VARCHAR(20), " +
+                    "nombre VARCHAR(255), " +
+                    "logo_path VARCHAR(255), " +
+                    "direccion VARCHAR(255), " +
+                    "telefono VARCHAR(50)" +
+                    ")");
+            try { st.executeUpdate("INSERT INTO empresa (id) VALUES (1) ON DUPLICATE KEY UPDATE id=1"); } catch (SQLException ignored) {}
+
+            // Tabla impuestos (ITBIS)
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS impuestos (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "nombre VARCHAR(50) NOT NULL, " +
+                    "porcentaje DECIMAL(5,2) NOT NULL DEFAULT 0" +
+                    ")");
+            try { st.executeUpdate("INSERT INTO impuestos (nombre, porcentaje) SELECT 'ITBIS', 18 " +
+                    "WHERE NOT EXISTS (SELECT 1 FROM impuestos WHERE nombre='ITBIS')"); } catch (SQLException ignored) {}
+
+            // Tabla auditoría
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS auditoria (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "usuario_id INT, " +
+                    "usuario_nombre VARCHAR(50), " +
+                    "accion VARCHAR(20) NOT NULL, " +
+                    "tabla_afectada VARCHAR(50), " +
+                    "registro_id INT, " +
+                    "detalle TEXT, " +
+                    "fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ")");
 
             // Eliminar tablas de facturación si existen (para migración a nueva estructura)
@@ -111,12 +153,11 @@ public class ConexionBD {
                     "FOREIGN KEY (articulo_id) REFERENCES articulos(id)" +
                     ")");
 
-            // Insertar usuario por defecto (admin/admin) si no existe
+            // Insertar admin por defecto si no existe
             try {
-                st.executeUpdate("INSERT INTO usuarios (usuario, password) SELECT 'admin', 'admin' " +
+                st.executeUpdate("INSERT INTO usuarios (usuario, password, rol, estado) SELECT 'admin', 'admin', 'ADMIN', 'ACTIVO' " +
                         "WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE usuario = 'admin')");
-            } catch (SQLException ignored) {
-            }
+            } catch (SQLException ignored) {}
 
             // Insertar condiciones de pago por defecto
             try {

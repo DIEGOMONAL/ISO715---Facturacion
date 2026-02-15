@@ -2,6 +2,7 @@ package servlet;
 
 import dao.UsuarioDAO;
 import model.Usuario;
+import util.Roles;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -35,17 +36,27 @@ public class LoginServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String usuario = request.getParameter("usuario");
         String password = request.getParameter("password");
+
         try {
             Usuario u = usuarioDAO.autenticar(usuario != null ? usuario.trim() : "", password != null ? password : "");
             if (u != null) {
                 HttpSession session = request.getSession(true);
                 session.setAttribute("usuario", u.getUsuario());
                 session.setAttribute("usuarioId", u.getId());
+                session.setAttribute("rol", u.getRol());
+                session.setAttribute("nombreCompleto", u.getNombreCompleto() != null ? u.getNombreCompleto() : u.getUsuario());
                 response.sendRedirect(request.getContextPath() + "/");
-            } else {
-                request.setAttribute("error", "Usuario o contraseña incorrectos");
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                return;
             }
+            // Verificar si existe pero está pendiente
+            Usuario pendiente = usuarioDAO.buscarPorUsuario(usuario != null ? usuario.trim() : "");
+            if (pendiente != null && pendiente.isPending()) {
+                request.setAttribute("error", "Tu cuenta está pendiente de aprobación. Contacta al administrador.");
+                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                return;
+            }
+            request.setAttribute("error", "Usuario o contraseña incorrectos");
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         } catch (SQLException e) {
             throw new ServletException(e);
         }

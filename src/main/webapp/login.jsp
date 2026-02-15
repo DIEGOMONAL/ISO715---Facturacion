@@ -25,7 +25,10 @@
         </div>
         <button type="submit" class="btn btn-primary w-100">Entrar</button>
     </form>
-    <p class="text-muted mb-0">Usuario por defecto: admin / admin</p>
+    <p class="text-muted small mt-3 mb-0">
+        ¿No tienes cuenta? <a href="${pageContext.request.contextPath}/registro">Registrarse</a><br>
+        <span class="text-muted" style="font-size:0.85rem;">Admin: admin / admin</span>
+    </p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

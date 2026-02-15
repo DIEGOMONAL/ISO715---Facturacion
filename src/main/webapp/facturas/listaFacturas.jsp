@@ -1,11 +1,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Factura" %>
+<%@ page import="util.Roles" %>
 <%
     List<Factura> lista = (List<Factura>) request.getAttribute("listaFacturas");
     String buscar = (String) request.getAttribute("buscar");
     String ordenar = (String) request.getAttribute("ordenar");
+    String rol = (String) session.getAttribute("rol");
     if (ordenar == null) ordenar = "fecha_desc";
+    boolean puedeCrear = rol != null && !Roles.CONTADOR.equals(rol);
+    boolean puedeAnular = rol != null && !Roles.CAJERO.equals(rol) && !Roles.CONTADOR.equals(rol);
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -23,7 +27,7 @@
                 <h1>Facturación de Artículos</h1>
                 <p class="subtitle mb-0">Crea y gestiona facturas de venta</p>
             </div>
-            <a href="${pageContext.request.contextPath}/facturas?action=nuevo" class="btn btn-primary flex-shrink-0">Nueva factura</a>
+            <% if (puedeCrear) { %><a href="${pageContext.request.contextPath}/facturas?action=nuevo" class="btn btn-primary flex-shrink-0">Nueva factura</a><% } %>
         </div>
         <form method="get" class="filtros-bar d-flex flex-wrap gap-2 align-items-end">
             <div class="input-group" style="max-width: 280px;">
@@ -73,9 +77,9 @@
                             <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(f.getTotal()) %></td>
                             <td class="text-end">
                                 <a href="${pageContext.request.contextPath}/facturas?action=ver&id=<%= f.getId() %>" class="btn btn-sm btn-outline-primary me-1">Ver</a>
-                                <a href="${pageContext.request.contextPath}/facturas?action=editar&id=<%= f.getId() %>" class="btn btn-sm btn-outline-secondary me-1">Editar</a>
-                                <a href="${pageContext.request.contextPath}/facturas?action=eliminar&id=<%= f.getId() %>" class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('¿Eliminar esta factura?');">Eliminar</a>
+                                <% if (puedeCrear) { %><a href="${pageContext.request.contextPath}/facturas?action=editar&id=<%= f.getId() %>" class="btn btn-sm btn-outline-secondary me-1">Editar</a><% } %>
+                                <% if (puedeAnular) { %><a href="${pageContext.request.contextPath}/facturas?action=eliminar&id=<%= f.getId() %>" class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('¿Eliminar esta factura?');">Eliminar</a><% } %>
                             </td>
                         </tr>
                         <% } %>
@@ -86,7 +90,7 @@
                 <div class="empty-state">
                     <div class="empty-icon">📄</div>
                     <p class="mb-2">No hay facturas registradas.</p>
-                    <a href="${pageContext.request.contextPath}/facturas?action=nuevo" class="btn btn-primary">Crear la primera</a>
+                    <% if (puedeCrear) { %><a href="${pageContext.request.contextPath}/facturas?action=nuevo" class="btn btn-primary">Crear la primera</a><% } %>
                 </div>
                 <% } %>
             </div>

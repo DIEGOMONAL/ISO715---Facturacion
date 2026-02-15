@@ -1,13 +1,11 @@
 package filter;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/*"})
 public class AuthFilter implements Filter {
 
     @Override
@@ -19,7 +17,7 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         String path = request.getRequestURI().replace(request.getContextPath(), "");
 
-        boolean isPublic = path.startsWith("/login") || path.startsWith("/logout")
+        boolean isPublic = path.startsWith("/login") || path.startsWith("/logout") || path.startsWith("/registro")
                 || path.startsWith("/css/") || path.startsWith("/js/");
 
         if (!isPublic) {
