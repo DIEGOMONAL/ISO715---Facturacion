@@ -1,0 +1,13 @@
+# Ignorar carpetas de Visual Studio
+.vs/
+*.vsidx
+*.suo
+
+# Ignorar archivos de NetBeans y compilación
+build/
+nbproject/private/
+dist/
+
+# Ignorar archivos temporales de sistema
+Thumbs.db
+desktop.ini
