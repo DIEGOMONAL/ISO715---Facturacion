@@ -43,14 +43,22 @@ public class ConsultaServlet extends HttpServlet {
             String fechaDesde = request.getParameter("fechaDesde");
             String fechaHasta = request.getParameter("fechaHasta");
 
-            if (articuloId != null || vendedorId != null || clienteId != null || (fechaDesde != null && !fechaDesde.isEmpty()) || (fechaHasta != null && !fechaHasta.isEmpty())) {
+            if (articuloId != null || vendedorId != null || clienteId != null
+                    || (fechaDesde != null && !fechaDesde.isEmpty())
+                    || (fechaHasta != null && !fechaHasta.isEmpty())) {
+
                 Integer artId = parseInteger(articuloId);
                 Integer vendId = parseInteger(vendedorId);
                 Integer cliId = parseInteger(clienteId);
                 Date fd = parseDate(fechaDesde);
                 Date fh = parseDate(fechaHasta);
-                List<Factura> lista = facturaDAO.consultarPorCriterios(artId, vendId, cliId, fd, fh);
-                request.setAttribute("listaFacturas", lista);
+
+                if (fd != null && fh != null && fd.after(fh)) {
+                    request.setAttribute("error", "La fecha desde no puede ser mayor que la fecha hasta.");
+                } else {
+                    List<Factura> lista = facturaDAO.consultarPorCriterios(artId, vendId, cliId, fd, fh);
+                    request.setAttribute("listaFacturas", lista);
+                }
             }
 
             request.getRequestDispatcher("/consulta/consultaFacturas.jsp").forward(request, response);

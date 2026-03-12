@@ -29,7 +29,13 @@
         </div>
         <div class="card card-custom filter-card mb-4">
             <div class="card-body">
-                <form action="${pageContext.request.contextPath}/consulta" method="get" class="row g-3">
+                <% String error = (String) request.getAttribute("error"); %>
+                <% if (error != null) { %>
+                <div class="alert alert-danger" role="alert">
+                    <%= error %>
+                </div>
+                <% } %>
+                <form action="${pageContext.request.contextPath}/consulta" method="get" class="row g-3" id="formConsulta">
                     <div class="col-md-3">
                         <label class="form-label">Artículo</label>
                         <select name="articuloId" class="form-select">
@@ -62,11 +68,11 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Desde</label>
-                        <input type="date" name="fechaDesde" class="form-control" value="<%= fechaDesdeSel != null ? fechaDesdeSel : "" %>">
+                        <input type="date" name="fechaDesde" id="fechaDesde" class="form-control" value="<%= fechaDesdeSel != null ? fechaDesdeSel : "" %>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Hasta</label>
-                        <input type="date" name="fechaHasta" class="form-control" value="<%= fechaHastaSel != null ? fechaHastaSel : "" %>">
+                        <input type="date" name="fechaHasta" id="fechaHasta" class="form-control" value="<%= fechaHastaSel != null ? fechaHastaSel : "" %>">
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Buscar</button>
@@ -114,5 +120,27 @@
     </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function() {
+    const desde = document.getElementById('fechaDesde');
+    const hasta = document.getElementById('fechaHasta');
+    if (!desde || !hasta) return;
+
+    function syncMinHasta() {
+        if (desde.value) {
+            hasta.min = desde.value;
+            if (hasta.value && hasta.value < desde.value) {
+                hasta.value = desde.value;
+            }
+        } else {
+            hasta.removeAttribute('min');
+        }
+    }
+
+    desde.addEventListener('change', syncMinHasta);
+    // Sincronizar al cargar, en caso de que ya vengan valores del servidor
+    syncMinHasta();
+})();
+</script>
 </body>
 </html>

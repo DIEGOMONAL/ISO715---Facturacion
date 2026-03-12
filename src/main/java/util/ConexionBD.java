@@ -81,12 +81,8 @@ public class ConexionBD {
                     "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
                     ")");
 
-            // Eliminar tablas de facturación si existen (para migración a nueva estructura)
-            st.executeUpdate("DROP TABLE IF EXISTS factura_detalle");
-            st.executeUpdate("DROP TABLE IF EXISTS facturas");
-
             // Tabla facturas (con FKs a cliente, condición de pago, vendedor)
-            st.executeUpdate("CREATE TABLE facturas (" +
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS facturas (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "cliente_id INT NOT NULL, " +
                     "condicion_pago_id INT NOT NULL, " +
