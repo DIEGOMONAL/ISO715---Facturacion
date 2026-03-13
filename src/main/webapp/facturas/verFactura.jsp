@@ -57,6 +57,12 @@
                     <div><strong>ITBIS (18%): RD$ <%= new java.text.DecimalFormat("#,##0.00").format(factura.getItbis()) %></strong></div>
                     <div><strong>Total: RD$ <%= new java.text.DecimalFormat("#,##0.00").format(factura.getTotal()) %></strong></div>
                 </div>
+                <%
+                    String ultimaAccion = (String) request.getAttribute("ultimaAccion");
+                    if (ultimaAccion != null) {
+                %>
+                <p class="mt-3 text-muted"><small><strong>Última acción:</strong> <%= ultimaAccion %></small></p>
+                <% } %>
                 <% } %>
             </div>
         </div>

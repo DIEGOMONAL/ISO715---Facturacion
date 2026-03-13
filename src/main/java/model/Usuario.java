@@ -5,6 +5,7 @@ public class Usuario {
     private String usuario;
     private String password;
     private String estado;
+    private String rol;
 
     public Usuario() {}
     public Usuario(String usuario, String password) {
@@ -19,4 +20,6 @@ public class Usuario {
     public void setPassword(String password) { this.password = password; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 }

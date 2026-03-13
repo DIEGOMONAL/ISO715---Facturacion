@@ -78,7 +78,8 @@ public class ConexionBD {
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "usuario VARCHAR(50) NOT NULL UNIQUE, " +
                     "password VARCHAR(100) NOT NULL, " +
-                    "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
+                    "rol VARCHAR(20) NOT NULL DEFAULT 'USUARIO', " +
+                    "estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'" +
                     ")");
 
             // Tabla facturas (con FKs a cliente, condición de pago, vendedor)
@@ -107,9 +108,21 @@ public class ConexionBD {
                     "FOREIGN KEY (articulo_id) REFERENCES articulos(id)" +
                     ")");
 
+            // Tabla de auditoría de facturas
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS factura_auditoria (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "factura_id INT NOT NULL, " +
+                    "usuario_id INT NOT NULL, " +
+                    "accion VARCHAR(20) NOT NULL, " +
+                    "fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (usuario_id) REFERENCES usuarios(id)" +
+                    ")");
+
             // Insertar usuario por defecto (admin/admin) si no existe
             try {
-                st.executeUpdate("INSERT INTO usuarios (usuario, password) SELECT 'admin', 'admin' " +
+                st.executeUpdate("INSERT INTO usuarios (usuario, password, rol, estado) " +
+                        "SELECT 'admin', 'admin', 'ADMIN', 'ACTIVO' " +
                         "WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE usuario = 'admin')");
             } catch (SQLException ignored) {
             }

@@ -4,33 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Iniciar sesión - Sistema de Facturación</title>
+    <title>Registro de usuario - Sistema de Facturación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/css/estilos.css" rel="stylesheet">
 </head>
 <body class="login-wrapper">
 <div class="login-card">
-    <h4>Sistema de Facturación</h4>
+    <h4>Registro de Usuario</h4>
     <% if (request.getAttribute("error") != null) { %>
     <div class="alert alert-danger"><%= request.getAttribute("error") %></div>
     <% } %>
-    <% if (request.getAttribute("mensaje") != null) { %>
-    <div class="alert alert-success"><%= request.getAttribute("mensaje") %></div>
-    <% } %>
-    <form action="${pageContext.request.contextPath}/login" method="post">
+    <form action="${pageContext.request.contextPath}/registro" method="post">
         <div class="mb-3">
             <label for="usuario" class="form-label">Usuario</label>
-            <input type="text" class="form-control" id="usuario" name="usuario" required autofocus placeholder="Ingrese su usuario">
+            <input type="text" class="form-control" id="usuario" name="usuario" required autofocus>
         </div>
         <div class="mb-3">
             <label for="password" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="password" name="password" required placeholder="Ingrese su contraseña">
+            <input type="password" class="form-control" id="password" name="password" required>
         </div>
-        <button type="submit" class="btn btn-primary w-100 mb-2">Entrar</button>
+        <div class="mb-3">
+            <label for="password2" class="form-label">Confirmar contraseña</label>
+            <input type="password" class="form-control" id="password2" name="password2" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
     </form>
-    <a href="${pageContext.request.contextPath}/registro" class="btn btn-primary w-100">Registrarse</a>
-    <p class="text-muted mb-0 mt-2">Usuario por defecto: admin / admin</p>
+    <p class="text-muted mb-0 mt-2">Tu cuenta quedará pendiente hasta que un administrador la apruebe.</p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

@@ -24,6 +24,7 @@ public class Factura {
     private double itbis;
     private double total;
     private List<FacturaDetalle> detalles = new ArrayList<>();
+    private int usuarioId;
 
     public Factura() {
     }
@@ -122,6 +123,14 @@ public class Factura {
 
     public void setItbis(double itbis) {
         this.itbis = itbis;
+    }
+
+    public int getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(int usuarioId) {
+        this.usuarioId = usuarioId;
     }
 
     public List<FacturaDetalle> getDetalles() {

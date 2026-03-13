@@ -109,6 +109,8 @@ public class FacturaDAO {
                     ps.executeUpdate();
                 }
             }
+            // Auditoría: creación de factura
+            registrarAuditoria(con, f.getId(), f.getUsuarioId(), "CREAR");
             con.commit();
         } catch (SQLException e) {
             if (con != null) con.rollback();
@@ -299,6 +301,8 @@ public class FacturaDAO {
                     ps.executeUpdate();
                 }
             }
+            // Auditoría: actualización de factura
+            registrarAuditoria(con, f.getId(), f.getUsuarioId(), "ACTUALIZAR");
             con.commit();
         } catch (SQLException e) {
             if (con != null) con.rollback();
@@ -347,5 +351,38 @@ public class FacturaDAO {
         f.setItbis(itbis);
         // El campo total persistido ya incluye impuestos cuando se inserta/actualiza;
         // aquí no lo modificamos para no desalinear lo guardado en base de datos.
+    }
+
+    private void registrarAuditoria(Connection con, int facturaId, int usuarioId, String accion) throws SQLException {
+        if (usuarioId <= 0) return;
+        String sql = "INSERT INTO factura_auditoria (factura_id, usuario_id, accion) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, facturaId);
+            ps.setInt(2, usuarioId);
+            ps.setString(3, accion);
+            ps.executeUpdate();
+        }
+    }
+
+    public String obtenerUltimaAccionUsuario(int facturaId) throws SQLException {
+        String sql = "SELECT u.usuario, a.accion, a.fecha_hora " +
+                "FROM factura_auditoria a " +
+                "JOIN usuarios u ON a.usuario_id = u.id " +
+                "WHERE a.factura_id = ? " +
+                "ORDER BY a.fecha_hora DESC " +
+                "LIMIT 1";
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, facturaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String usuario = rs.getString("usuario");
+                    String accion = rs.getString("accion");
+                    Timestamp ts = rs.getTimestamp("fecha_hora");
+                    return accion + " por " + usuario + " el " + ts;
+                }
+            }
+        }
+        return null;
     }
 }

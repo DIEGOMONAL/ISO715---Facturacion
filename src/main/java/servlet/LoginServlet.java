@@ -41,9 +41,10 @@ public class LoginServlet extends HttpServlet {
                 HttpSession session = request.getSession(true);
                 session.setAttribute("usuario", u.getUsuario());
                 session.setAttribute("usuarioId", u.getId());
+                session.setAttribute("rol", u.getRol());
                 response.sendRedirect(request.getContextPath() + "/");
             } else {
-                request.setAttribute("error", "Usuario o contraseña incorrectos");
+                request.setAttribute("error", "Usuario o contraseña incorrectos, o la cuenta no está activa.");
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
             }
         } catch (SQLException e) {

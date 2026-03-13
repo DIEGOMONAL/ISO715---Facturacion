@@ -115,11 +115,17 @@ public class FacturaServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Factura factura = facturaDAO.obtenerPorId(id);
         request.setAttribute("factura", factura);
+        String ultimaAccion = facturaDAO.obtenerUltimaAccionUsuario(id);
+        request.setAttribute("ultimaAccion", ultimaAccion);
         request.getRequestDispatcher("/facturas/verFactura.jsp").forward(request, response);
     }
 
     private void insertar(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         Factura f = construirFacturaDesdeRequest(request);
+        Object usuarioIdObj = request.getSession().getAttribute("usuarioId");
+        if (usuarioIdObj instanceof Integer) {
+            f.setUsuarioId((Integer) usuarioIdObj);
+        }
         facturaDAO.insertar(f);
         response.sendRedirect(request.getContextPath() + "/facturas");
     }
@@ -127,6 +133,10 @@ public class FacturaServlet extends HttpServlet {
     private void actualizar(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         Factura f = construirFacturaDesdeRequest(request);
         f.setId(Integer.parseInt(request.getParameter("id")));
+        Object usuarioIdObj = request.getSession().getAttribute("usuarioId");
+        if (usuarioIdObj instanceof Integer) {
+            f.setUsuarioId((Integer) usuarioIdObj);
+        }
         facturaDAO.actualizar(f);
         response.sendRedirect(request.getContextPath() + "/facturas");
     }
