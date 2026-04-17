@@ -247,6 +247,33 @@ public class FacturaDAO {
         return lista;
     }
 
+    public List<Factura> listarCreditoPorCliente(int clienteId) throws SQLException {
+        String sql = "SELECT f.id, f.cliente_id, f.condicion_pago_id, f.vendedor_id, f.fecha, f.hora, f.total, " +
+                "c.nombre_comercial AS cliente_nombre, cp.descripcion AS condicion_pago_desc, v.nombre AS vendedor_nombre " +
+                "FROM facturas f " +
+                "LEFT JOIN clientes c ON f.cliente_id = c.id " +
+                "LEFT JOIN condiciones_pago cp ON f.condicion_pago_id = cp.id " +
+                "LEFT JOIN vendedores v ON f.vendedor_id = v.id " +
+                "WHERE f.cliente_id = ? " +
+                "AND (cp.cantidad_dias > 0 OR LOWER(cp.descripcion) LIKE '%credito%' OR LOWER(cp.descripcion) LIKE '%crédito%' OR LOWER(cp.descripcion) LIKE '%cuota%') " +
+                "ORDER BY f.fecha DESC, f.id DESC";
+
+        List<Factura> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, clienteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Factura f = mapearFactura(rs);
+                    f.setDetalles(obtenerDetalles(con, f.getId()));
+                    recalcularTotalesConImpuestos(f);
+                    lista.add(f);
+                }
+            }
+        }
+        return lista;
+    }
+
     private List<FacturaDetalle> obtenerDetalles(Connection con, int facturaId) throws SQLException {
         List<FacturaDetalle> detalles = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SELECT_DETALLES_SQL)) {

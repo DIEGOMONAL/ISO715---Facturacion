@@ -1,7 +1,9 @@
 package util;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -54,7 +56,8 @@ public class ConexionBD {
                     "nombre_comercial VARCHAR(255) NOT NULL, " +
                     "rnc_cedula VARCHAR(20) NOT NULL, " +
                     "cuenta_contable VARCHAR(50), " +
-                    "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
+                    "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO', " +
+                    "balance DECIMAL(12,2) NOT NULL DEFAULT 0" +
                     ")");
 
             // Tabla condiciones_pago
@@ -81,6 +84,17 @@ public class ConexionBD {
                     "rol VARCHAR(20) NOT NULL DEFAULT 'USUARIO', " +
                     "estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'" +
                     ")");
+
+            // Migraciones para bases de datos existentes (compatibles con MySQL que no soportan IF NOT EXISTS en ADD COLUMN)
+            if (!tieneColumna(con, "clientes", "balance")) {
+                st.executeUpdate("ALTER TABLE clientes ADD COLUMN balance DECIMAL(12,2) NOT NULL DEFAULT 0");
+            }
+            if (!tieneColumna(con, "usuarios", "rol")) {
+                st.executeUpdate("ALTER TABLE usuarios ADD COLUMN rol VARCHAR(20) NOT NULL DEFAULT 'USUARIO'");
+            }
+            if (!tieneColumna(con, "usuarios", "estado")) {
+                st.executeUpdate("ALTER TABLE usuarios ADD COLUMN estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'");
+            }
 
             // Tabla facturas (con FKs a cliente, condición de pago, vendedor)
             st.executeUpdate("CREATE TABLE IF NOT EXISTS facturas (" +
@@ -119,6 +133,76 @@ public class ConexionBD {
                     "FOREIGN KEY (usuario_id) REFERENCES usuarios(id)" +
                     ")");
 
+            // Tabla de abonos de clientes (para pagos parciales de deudas)
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS abonos_cliente (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "cliente_id INT NOT NULL, " +
+                    "factura_id INT NULL, " +
+                    "monto DECIMAL(12,2) NOT NULL, " +
+                    "observacion VARCHAR(255) NULL, " +
+                    "fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "FOREIGN KEY (cliente_id) REFERENCES clientes(id), " +
+                    "FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE SET NULL" +
+                    ")");
+
+            // Triggers para actualizar balance del cliente automaticamente
+            try {
+                st.executeUpdate("DROP TRIGGER IF EXISTS facturas_after_insert");
+                st.executeUpdate(
+                        "CREATE TRIGGER facturas_after_insert " +
+                                "AFTER INSERT ON facturas " +
+                                "FOR EACH ROW " +
+                                "BEGIN " +
+                                "  UPDATE clientes SET balance = balance + NEW.total WHERE id = NEW.cliente_id; " +
+                                "END"
+                );
+            } catch (SQLException ignored) {
+            }
+
+            try {
+                st.executeUpdate("DROP TRIGGER IF EXISTS abonos_after_insert");
+                st.executeUpdate(
+                        "CREATE TRIGGER abonos_after_insert " +
+                                "AFTER INSERT ON abonos_cliente " +
+                                "FOR EACH ROW " +
+                                "BEGIN " +
+                                "  UPDATE clientes SET balance = GREATEST(balance - NEW.monto, 0) WHERE id = NEW.cliente_id; " +
+                                "END"
+                );
+            } catch (SQLException ignored) {
+            }
+
+            try {
+                st.executeUpdate("DROP TRIGGER IF EXISTS facturas_after_update");
+                st.executeUpdate(
+                        "CREATE TRIGGER facturas_after_update " +
+                                "AFTER UPDATE ON facturas " +
+                                "FOR EACH ROW " +
+                                "BEGIN " +
+                                "  IF OLD.cliente_id = NEW.cliente_id THEN " +
+                                "    UPDATE clientes SET balance = balance - OLD.total + NEW.total WHERE id = NEW.cliente_id; " +
+                                "  ELSE " +
+                                "    UPDATE clientes SET balance = balance - OLD.total WHERE id = OLD.cliente_id; " +
+                                "    UPDATE clientes SET balance = balance + NEW.total WHERE id = NEW.cliente_id; " +
+                                "  END IF; " +
+                                "END"
+                );
+            } catch (SQLException ignored) {
+            }
+
+            try {
+                st.executeUpdate("DROP TRIGGER IF EXISTS facturas_after_delete");
+                st.executeUpdate(
+                        "CREATE TRIGGER facturas_after_delete " +
+                                "AFTER DELETE ON facturas " +
+                                "FOR EACH ROW " +
+                                "BEGIN " +
+                                "  UPDATE clientes SET balance = balance - OLD.total WHERE id = OLD.cliente_id; " +
+                                "END"
+                );
+            } catch (SQLException ignored) {
+            }
+
             // Insertar usuario por defecto (admin/admin) si no existe
             try {
                 st.executeUpdate("INSERT INTO usuarios (usuario, password, rol, estado) " +
@@ -137,6 +221,13 @@ public class ConexionBD {
                         "WHERE NOT EXISTS (SELECT 1 FROM condiciones_pago WHERE descripcion = 'Cheque')");
             } catch (SQLException ignored) {
             }
+        }
+    }
+
+    private static boolean tieneColumna(Connection con, String tabla, String columna) throws SQLException {
+        DatabaseMetaData md = con.getMetaData();
+        try (ResultSet rs = md.getColumns(con.getCatalog(), null, tabla, columna)) {
+            return rs.next();
         }
     }
 }

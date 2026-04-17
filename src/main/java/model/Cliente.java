@@ -12,6 +12,7 @@ public class Cliente {
     private String rncCedula;
     private String cuentaContable;
     private String estado;
+    private double balance;
 
     public Cliente() {
     }
@@ -22,6 +23,15 @@ public class Cliente {
         this.rncCedula = rncCedula;
         this.cuentaContable = cuentaContable;
         this.estado = estado;
+    }
+
+    public Cliente(int id, String nombreComercial, String rncCedula, String cuentaContable, String estado, double balance) {
+        this.id = id;
+        this.nombreComercial = nombreComercial;
+        this.rncCedula = rncCedula;
+        this.cuentaContable = cuentaContable;
+        this.estado = estado;
+        this.balance = balance;
     }
 
     public Cliente(String nombreComercial, String rncCedula, String cuentaContable, String estado) {
@@ -69,5 +79,13 @@ public class Cliente {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 }

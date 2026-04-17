@@ -48,6 +48,12 @@
         </form>
         <div class="card card-custom">
             <div class="card-body">
+                <div class="mb-3 d-flex gap-2 flex-wrap">
+                    <span class="me-2">Exportar:</span>
+                    <a href="${pageContext.request.contextPath}/exportFacturas?type=xls&buscar=<%= buscar != null ? buscar : "" %>&ordenar=<%= ordenar != null ? ordenar : "fecha_desc" %>" class="btn btn-sm btn-outline-primary">Excel</a>
+                    <a href="${pageContext.request.contextPath}/exportFacturas?type=csv&buscar=<%= buscar != null ? buscar : "" %>&ordenar=<%= ordenar != null ? ordenar : "fecha_desc" %>" class="btn btn-sm btn-outline-secondary">CSV</a>
+                    <a href="${pageContext.request.contextPath}/exportFacturas?type=pdf&buscar=<%= buscar != null ? buscar : "" %>&ordenar=<%= ordenar != null ? ordenar : "fecha_desc" %>" class="btn btn-sm btn-outline-danger">PDF</a>
+                </div>
                 <% if (lista != null && !lista.isEmpty()) { %>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover align-middle table-custom">

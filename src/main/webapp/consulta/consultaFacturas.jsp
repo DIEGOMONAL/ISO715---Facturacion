@@ -84,6 +84,15 @@
         <div class="card card-custom">
             <div class="card-body">
                 <h5 class="card-title">Resultados</h5>
+                <div class="mb-3 d-flex gap-2 flex-wrap">
+                    <span class="me-2">Exportar esta consulta:</span>
+                    <a href="${pageContext.request.contextPath}/exportConsulta?type=xls&articuloId=<%= articuloIdSel != null ? articuloIdSel : "" %>&clienteId=<%= clienteIdSel != null ? clienteIdSel : "" %>&vendedorId=<%= vendedorIdSel != null ? vendedorIdSel : "" %>&fechaDesde=<%= fechaDesdeSel != null ? fechaDesdeSel : "" %>&fechaHasta=<%= fechaHastaSel != null ? fechaHastaSel : "" %>"
+                       class="btn btn-sm btn-outline-primary">Excel</a>
+                    <a href="${pageContext.request.contextPath}/exportConsulta?type=csv&articuloId=<%= articuloIdSel != null ? articuloIdSel : "" %>&clienteId=<%= clienteIdSel != null ? clienteIdSel : "" %>&vendedorId=<%= vendedorIdSel != null ? vendedorIdSel : "" %>&fechaDesde=<%= fechaDesdeSel != null ? fechaDesdeSel : "" %>&fechaHasta=<%= fechaHastaSel != null ? fechaHastaSel : "" %>"
+                       class="btn btn-sm btn-outline-secondary">CSV</a>
+                    <a href="${pageContext.request.contextPath}/exportConsulta?type=pdf&articuloId=<%= articuloIdSel != null ? articuloIdSel : "" %>&clienteId=<%= clienteIdSel != null ? clienteIdSel : "" %>&vendedorId=<%= vendedorIdSel != null ? vendedorIdSel : "" %>&fechaDesde=<%= fechaDesdeSel != null ? fechaDesdeSel : "" %>&fechaHasta=<%= fechaHastaSel != null ? fechaHastaSel : "" %>"
+                       class="btn btn-sm btn-outline-danger">PDF</a>
+                </div>
                 <% if (!lista.isEmpty()) { %>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover table-custom">

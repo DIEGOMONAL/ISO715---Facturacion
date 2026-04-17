@@ -31,10 +31,11 @@
                 </li>
                 <% } %>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle ${param.page eq 'facturas' || param.page eq 'consulta' || param.page eq 'reporte' ? 'active' : ''}" href="#" id="factDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Facturación</a>
+                    <a class="nav-link dropdown-toggle ${param.page eq 'facturas' || param.page eq 'consulta' || param.page eq 'estadoCuenta' || param.page eq 'reporte' ? 'active' : ''}" href="#" id="factDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Facturación</a>
                     <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="factDropdown">
                         <li><a class="dropdown-item ${param.page eq 'facturas' ? 'active' : ''}" href="${pageContext.request.contextPath}/facturas">Facturas</a></li>
                         <li><a class="dropdown-item ${param.page eq 'consulta' ? 'active' : ''}" href="${pageContext.request.contextPath}/consulta">Consulta</a></li>
+                        <li><a class="dropdown-item ${param.page eq 'estadoCuenta' ? 'active' : ''}" href="${pageContext.request.contextPath}/estadoCuenta">Estado de cuenta</a></li>
                         <% if (esAdminNav || esAuditorNav || esSupervisorNav) { %>
                         <li><a class="dropdown-item ${param.page eq 'reporte' ? 'active' : ''}" href="${pageContext.request.contextPath}/reporte">Reporte Cliente</a></li>
                         <% } %>

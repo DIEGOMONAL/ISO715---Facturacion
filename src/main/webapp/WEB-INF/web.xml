@@ -8,6 +8,37 @@
     <display-name>FacturacionWeb</display-name>
 
     <!-- Usamos @WebServlet en FacturaServlet, por eso no es obligatorio mapear aquí -->
+    <!-- Mapeos explícitos para evitar 404 por escaneo de anotaciones en algunos despliegues -->
+    <servlet>
+        <servlet-name>EstadoCuentaServlet</servlet-name>
+        <servlet-class>servlet.EstadoCuentaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EstadoCuentaServlet</servlet-name>
+        <url-pattern>/estadoCuenta</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EstadoCuentaServlet</servlet-name>
+        <url-pattern>/estadocuenta</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ExportFacturasServlet</servlet-name>
+        <servlet-class>servlet.ExportFacturasServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExportFacturasServlet</servlet-name>
+        <url-pattern>/exportFacturas</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ExportConsultaServlet</servlet-name>
+        <servlet-class>servlet.ExportConsultaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExportConsultaServlet</servlet-name>
+        <url-pattern>/exportConsulta</url-pattern>
+    </servlet-mapping>
 
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>

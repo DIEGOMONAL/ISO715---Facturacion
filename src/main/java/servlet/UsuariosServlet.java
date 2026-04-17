@@ -1,7 +1,7 @@
 package servlet;
 
 import dao.UsuarioDAO;
-import util.ConexionBD;
+import model.Usuario;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,9 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet("/usuarios")
 public class UsuariosServlet extends HttpServlet {
@@ -25,9 +24,9 @@ public class UsuariosServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try (Connection con = ConexionBD.getConnection()) {
-            ResultSet rs = usuarioDAO.listarTodos(con);
-            request.setAttribute("usuariosRS", rs);
+        try {
+            List<Usuario> usuarios = usuarioDAO.listarTodos();
+            request.setAttribute("usuarios", usuarios);
             request.getRequestDispatcher("/usuarios/listaUsuarios.jsp").forward(request, response);
         } catch (SQLException e) {
             throw new ServletException(e);
@@ -38,7 +37,13 @@ public class UsuariosServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         String idStr = request.getParameter("id");
-        int id = idStr != null ? Integer.parseInt(idStr) : 0;
+        int id;
+        try {
+            id = idStr != null ? Integer.parseInt(idStr) : 0;
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/usuarios");
+            return;
+        }
         try {
             if ("aprobar".equals(action)) {
                 usuarioDAO.cambiarEstado(id, "ACTIVO");

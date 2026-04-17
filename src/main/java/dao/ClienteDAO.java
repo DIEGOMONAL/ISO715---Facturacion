@@ -10,9 +10,9 @@ import java.util.List;
 public class ClienteDAO {
 
     private static final String INSERT_SQL = "INSERT INTO clientes (nombre_comercial, rnc_cedula, cuenta_contable, estado) VALUES (?, ?, ?, ?)";
-    private static final String SELECT_BY_ID_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado FROM clientes WHERE id = ?";
-    private static final String SELECT_ALL_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado FROM clientes ORDER BY nombre_comercial";
-    private static final String SELECT_ACTIVOS_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado FROM clientes WHERE estado = 'ACTIVO' ORDER BY nombre_comercial";
+    private static final String SELECT_BY_ID_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado, balance FROM clientes WHERE id = ?";
+    private static final String SELECT_ALL_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado, balance FROM clientes ORDER BY nombre_comercial";
+    private static final String SELECT_ACTIVOS_SQL = "SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado, balance FROM clientes WHERE estado = 'ACTIVO' ORDER BY nombre_comercial";
     private static final String UPDATE_SQL = "UPDATE clientes SET nombre_comercial = ?, rnc_cedula = ?, cuenta_contable = ?, estado = ? WHERE id = ?";
     private static final String DELETE_SQL = "DELETE FROM clientes WHERE id = ?";
 
@@ -50,7 +50,7 @@ public class ClienteDAO {
     }
 
     public List<Cliente> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado FROM clientes WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT id, nombre_comercial, rnc_cedula, cuenta_contable, estado, balance FROM clientes WHERE 1=1");
         List<Object> params = new ArrayList<>();
         if (buscar != null && !buscar.trim().isEmpty()) {
             String t = buscar.trim();
@@ -125,7 +125,8 @@ public class ClienteDAO {
                 rs.getString("nombre_comercial"),
                 rs.getString("rnc_cedula"),
                 rs.getString("cuenta_contable"),
-                rs.getString("estado")
+                rs.getString("estado"),
+                rs.getDouble("balance")
         );
     }
 }

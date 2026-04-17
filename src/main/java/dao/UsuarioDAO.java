@@ -4,6 +4,8 @@ import model.Usuario;
 import util.ConexionBD;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDAO {
     private static final String SELECT_BY_USER_PASS = "SELECT id, usuario, password, rol, estado FROM usuarios WHERE usuario = ? AND password = ? AND estado = 'ACTIVO'";
@@ -43,9 +45,21 @@ public class UsuarioDAO {
         }
     }
 
-    public ResultSet listarTodos(Connection con) throws SQLException {
-        PreparedStatement ps = con.prepareStatement(SELECT_ALL_SQL);
-        return ps.executeQuery();
+    public List<Usuario> listarTodos() throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(SELECT_ALL_SQL);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setId(rs.getInt("id"));
+                u.setUsuario(rs.getString("usuario"));
+                u.setRol(rs.getString("rol"));
+                u.setEstado(rs.getString("estado"));
+                lista.add(u);
+            }
+        }
+        return lista;
     }
 
     public void cambiarEstado(int id, String nuevoEstado) throws SQLException {

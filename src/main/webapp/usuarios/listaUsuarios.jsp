@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.Usuario" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,46 +31,42 @@
                         </thead>
                         <tbody>
                         <%
-                            ResultSet rs = (ResultSet) request.getAttribute("usuariosRS");
-                            if (rs != null) {
-                                while (rs.next()) {
+                            List<Usuario> usuarios = (List<Usuario>) request.getAttribute("usuarios");
+                            if (usuarios != null) for (Usuario u : usuarios) {
                         %>
                         <tr>
-                            <td><%= rs.getInt("id") %></td>
-                            <td><%= rs.getString("usuario") %></td>
-                            <td><%= rs.getString("rol") %></td>
-                            <td><%= rs.getString("estado") %></td>
+                            <td><%= u.getId() %></td>
+                            <td><%= u.getUsuario() %></td>
+                            <td><%= u.getRol() %></td>
+                            <td><%= u.getEstado() %></td>
                             <td class="d-flex gap-1">
                                 <form action="${pageContext.request.contextPath}/usuarios" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<%= rs.getInt("id") %>">
+                                    <input type="hidden" name="id" value="<%= u.getId() %>">
                                     <input type="hidden" name="action" value="aprobar">
                                     <button type="submit" class="btn btn-sm btn-success" <%=
-                                            "ACTIVO".equals(rs.getString("estado")) ? "disabled" : "" %>>Aprobar</button>
+                                            "ACTIVO".equals(u.getEstado()) ? "disabled" : "" %>>Aprobar</button>
                                 </form>
                                 <form action="${pageContext.request.contextPath}/usuarios" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<%= rs.getInt("id") %>">
+                                    <input type="hidden" name="id" value="<%= u.getId() %>">
                                     <input type="hidden" name="action" value="bloquear">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" <%=
-                                            "INACTIVO".equals(rs.getString("estado")) ? "disabled" : "" %>>Bloquear</button>
+                                            "INACTIVO".equals(u.getEstado()) ? "disabled" : "" %>>Bloquear</button>
                                 </form>
                                 <form action="${pageContext.request.contextPath}/usuarios" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<%= rs.getInt("id") %>">
+                                    <input type="hidden" name="id" value="<%= u.getId() %>">
                                     <input type="hidden" name="action" value="rol">
                                     <select name="rol" class="form-select form-select-sm d-inline w-auto">
-                                        <option value="USUARIO" <%= "USUARIO".equals(rs.getString("rol")) ? "selected" : "" %>>Usuario</option>
-                                        <option value="VENDEDOR" <%= "VENDEDOR".equals(rs.getString("rol")) ? "selected" : "" %>>Vendedor</option>
-                                        <option value="AUDITOR" <%= "AUDITOR".equals(rs.getString("rol")) ? "selected" : "" %>>Auditor</option>
-                                        <option value="SUPERVISOR" <%= "SUPERVISOR".equals(rs.getString("rol")) ? "selected" : "" %>>Supervisor</option>
-                                        <option value="ADMIN" <%= "ADMIN".equals(rs.getString("rol")) ? "selected" : "" %>>Administrador</option>
+                                        <option value="USUARIO" <%= "USUARIO".equals(u.getRol()) ? "selected" : "" %>>Usuario</option>
+                                        <option value="VENDEDOR" <%= "VENDEDOR".equals(u.getRol()) ? "selected" : "" %>>Vendedor</option>
+                                        <option value="AUDITOR" <%= "AUDITOR".equals(u.getRol()) ? "selected" : "" %>>Auditor</option>
+                                        <option value="SUPERVISOR" <%= "SUPERVISOR".equals(u.getRol()) ? "selected" : "" %>>Supervisor</option>
+                                        <option value="ADMIN" <%= "ADMIN".equals(u.getRol()) ? "selected" : "" %>>Administrador</option>
                                     </select>
                                     <button type="submit" class="btn btn-sm btn-outline-primary">Cambiar rol</button>
                                 </form>
                             </td>
                         </tr>
                         <%
-                                }
-                                rs.getStatement().close();
-                                rs.close();
                             }
                         %>
                         </tbody>
