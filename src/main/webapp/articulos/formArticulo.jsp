@@ -35,6 +35,11 @@
                                        value="<%= esEdicion ? new java.text.DecimalFormat("0.00").format(articulo.getPrecioUnitario()) : "" %>" required placeholder="0.00">
                             </div>
                             <div class="mb-3">
+                                <label for="cantidadDisponible" class="form-label">Cantidad Disponible</label>
+                                <input type="number" min="0" step="1" class="form-control" id="cantidadDisponible" name="cantidadDisponible"
+                                       value="<%= esEdicion ? articulo.getCantidadDisponible() : 0 %>" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="estado" class="form-label">Estado</label>
                                 <select class="form-select" id="estado" name="estado">
                                     <option value="ACTIVO" <%= (esEdicion && "ACTIVO".equals(articulo.getEstado())) ? "selected" : "" %>>Activo</option>

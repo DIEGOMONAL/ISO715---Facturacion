@@ -9,21 +9,24 @@ public class Articulo {
     private int id;
     private String descripcion;
     private double precioUnitario;
+    private int cantidadDisponible;
     private String estado;
 
     public Articulo() {
     }
 
-    public Articulo(int id, String descripcion, double precioUnitario, String estado) {
+    public Articulo(int id, String descripcion, double precioUnitario, int cantidadDisponible, String estado) {
         this.id = id;
         this.descripcion = descripcion;
         this.precioUnitario = precioUnitario;
+        this.cantidadDisponible = cantidadDisponible;
         this.estado = estado;
     }
 
-    public Articulo(String descripcion, double precioUnitario, String estado) {
+    public Articulo(String descripcion, double precioUnitario, int cantidadDisponible, String estado) {
         this.descripcion = descripcion;
         this.precioUnitario = precioUnitario;
+        this.cantidadDisponible = cantidadDisponible;
         this.estado = estado;
     }
 
@@ -57,5 +60,13 @@ public class Articulo {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public int getCantidadDisponible() {
+        return cantidadDisponible;
+    }
+
+    public void setCantidadDisponible(int cantidadDisponible) {
+        this.cantidadDisponible = cantidadDisponible;
     }
 }

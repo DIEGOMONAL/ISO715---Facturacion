@@ -54,6 +54,7 @@
                             <th>ID</th>
                             <th>Descripción</th>
                             <th>Precio Unitario</th>
+                            <th>Disponible</th>
                             <th>Estado</th>
                             <th class="text-end">Acciones</th>
                         </tr>
@@ -64,11 +65,17 @@
                             <td><%= a.getId() %></td>
                             <td><%= a.getDescripcion() %></td>
                             <td>RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %></td>
+                            <td><%= a.getCantidadDisponible() %></td>
                             <td><span class="badge badge-status <%= "ACTIVO".equals(a.getEstado()) ? "bg-success" : "bg-secondary" %>"><%= a.getEstado() %></span></td>
                             <td class="text-end">
                                 <a href="${pageContext.request.contextPath}/articulos?action=editar&id=<%= a.getId() %>" class="btn btn-sm btn-outline-secondary me-1">Editar</a>
+                                <% if ("ACTIVO".equals(a.getEstado())) { %>
                                 <a href="${pageContext.request.contextPath}/articulos?action=eliminar&id=<%= a.getId() %>" class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('¿Eliminar este artículo?');">Eliminar</a>
+                                   onclick="return confirm('¿Desactivar este artículo? Ya no saldrá para nuevas facturas.');">Desactivar</a>
+                                <% } else { %>
+                                <a href="${pageContext.request.contextPath}/articulos?action=recuperar&id=<%= a.getId() %>" class="btn btn-sm btn-outline-success"
+                                   onclick="return confirm('¿Reactivar este artículo?');">Recuperar</a>
+                                <% } %>
                             </td>
                         </tr>
                         <% } %>

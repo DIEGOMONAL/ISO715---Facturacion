@@ -9,19 +9,21 @@ import java.util.List;
 
 public class ArticuloDAO {
 
-    private static final String INSERT_SQL = "INSERT INTO articulos (descripcion, precio_unitario, estado) VALUES (?, ?, ?)";
-    private static final String SELECT_BY_ID_SQL = "SELECT id, descripcion, precio_unitario, estado FROM articulos WHERE id = ?";
-    private static final String SELECT_ALL_SQL = "SELECT id, descripcion, precio_unitario, estado FROM articulos ORDER BY descripcion";
-    private static final String SELECT_ACTIVOS_SQL = "SELECT id, descripcion, precio_unitario, estado FROM articulos WHERE estado = 'ACTIVO' ORDER BY descripcion";
-    private static final String UPDATE_SQL = "UPDATE articulos SET descripcion = ?, precio_unitario = ?, estado = ? WHERE id = ?";
-    private static final String DELETE_SQL = "DELETE FROM articulos WHERE id = ?";
+    private static final String INSERT_SQL = "INSERT INTO articulos (descripcion, precio_unitario, cantidad_disponible, estado) VALUES (?, ?, ?, ?)";
+    private static final String SELECT_BY_ID_SQL = "SELECT id, descripcion, precio_unitario, cantidad_disponible, estado FROM articulos WHERE id = ?";
+    private static final String SELECT_ALL_SQL = "SELECT id, descripcion, precio_unitario, cantidad_disponible, estado FROM articulos ORDER BY descripcion";
+    private static final String SELECT_ACTIVOS_SQL = "SELECT id, descripcion, precio_unitario, cantidad_disponible, estado FROM articulos WHERE estado = 'ACTIVO' ORDER BY descripcion";
+    private static final String UPDATE_SQL = "UPDATE articulos SET descripcion = ?, precio_unitario = ?, cantidad_disponible = ?, estado = ? WHERE id = ?";
+    private static final String DESACTIVAR_SQL = "UPDATE articulos SET estado = 'INACTIVO' WHERE id = ?";
+    private static final String ACTIVAR_SQL = "UPDATE articulos SET estado = 'ACTIVO' WHERE id = ?";
 
     public void insertar(Articulo a) throws SQLException {
         try (Connection con = ConexionBD.getConnection();
              PreparedStatement ps = con.prepareStatement(INSERT_SQL)) {
             ps.setString(1, a.getDescripcion());
             ps.setDouble(2, a.getPrecioUnitario());
-            ps.setString(3, a.getEstado() != null ? a.getEstado() : "ACTIVO");
+            ps.setInt(3, Math.max(0, a.getCantidadDisponible()));
+            ps.setString(4, a.getEstado() != null ? a.getEstado() : "ACTIVO");
             ps.executeUpdate();
         }
     }
@@ -55,7 +57,7 @@ public class ArticuloDAO {
      * @param orden asc o desc
      */
     public List<Articulo> listarConFiltros(String buscar, String ordenarPor, String orden) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT id, descripcion, precio_unitario, estado FROM articulos WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT id, descripcion, precio_unitario, cantidad_disponible, estado FROM articulos WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (buscar != null && !buscar.trim().isEmpty()) {
@@ -113,15 +115,24 @@ public class ArticuloDAO {
              PreparedStatement ps = con.prepareStatement(UPDATE_SQL)) {
             ps.setString(1, a.getDescripcion());
             ps.setDouble(2, a.getPrecioUnitario());
-            ps.setString(3, a.getEstado() != null ? a.getEstado() : "ACTIVO");
-            ps.setInt(4, a.getId());
+            ps.setInt(3, Math.max(0, a.getCantidadDisponible()));
+            ps.setString(4, a.getEstado() != null ? a.getEstado() : "ACTIVO");
+            ps.setInt(5, a.getId());
             ps.executeUpdate();
         }
     }
 
     public void eliminar(int id) throws SQLException {
         try (Connection con = ConexionBD.getConnection();
-             PreparedStatement ps = con.prepareStatement(DELETE_SQL)) {
+             PreparedStatement ps = con.prepareStatement(DESACTIVAR_SQL)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        }
+    }
+
+    public void reactivar(int id) throws SQLException {
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(ACTIVAR_SQL)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
@@ -132,6 +143,7 @@ public class ArticuloDAO {
                 rs.getInt("id"),
                 rs.getString("descripcion"),
                 rs.getDouble("precio_unitario"),
+                rs.getInt("cantidad_disponible"),
                 rs.getString("estado")
         );
     }

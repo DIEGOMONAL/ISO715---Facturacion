@@ -43,6 +43,10 @@ public class ArticuloServlet extends HttpServlet {
                     articuloDAO.eliminar(Integer.parseInt(request.getParameter("id")));
                     response.sendRedirect(request.getContextPath() + "/articulos");
                     break;
+                case "recuperar":
+                    articuloDAO.reactivar(Integer.parseInt(request.getParameter("id")));
+                    response.sendRedirect(request.getContextPath() + "/articulos");
+                    break;
                 default:
                     String buscar = request.getParameter("buscar");
                     String ordenar = request.getParameter("ordenar");
@@ -69,6 +73,7 @@ public class ArticuloServlet extends HttpServlet {
                 Articulo a = new Articulo(
                         request.getParameter("descripcion"),
                         parseDoubleSafe(request.getParameter("precioUnitario")),
+                        parseIntSafe(request.getParameter("cantidadDisponible"), 0),
                         request.getParameter("estado") != null ? request.getParameter("estado") : "ACTIVO"
                 );
                 articuloDAO.insertar(a);
@@ -77,6 +82,7 @@ public class ArticuloServlet extends HttpServlet {
                         Integer.parseInt(request.getParameter("id")),
                         request.getParameter("descripcion"),
                         parseDoubleSafe(request.getParameter("precioUnitario")),
+                        parseIntSafe(request.getParameter("cantidadDisponible"), 0),
                         request.getParameter("estado") != null ? request.getParameter("estado") : "ACTIVO"
                 );
                 articuloDAO.actualizar(a);
@@ -97,5 +103,10 @@ public class ArticuloServlet extends HttpServlet {
         if (s == null || s.trim().isEmpty()) return 0;
         String v = s.trim().replace(",", "");
         try { return Double.parseDouble(v); } catch (NumberFormatException e) { return 0; }
+    }
+
+    private int parseIntSafe(String s, int def) {
+        if (s == null || s.trim().isEmpty()) return def;
+        try { return Math.max(Integer.parseInt(s.trim()), 0); } catch (NumberFormatException e) { return def; }
     }
 }

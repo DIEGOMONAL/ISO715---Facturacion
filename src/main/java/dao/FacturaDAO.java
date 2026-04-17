@@ -6,7 +6,9 @@ import util.ConexionBD;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FacturaDAO {
 
@@ -34,6 +36,8 @@ public class FacturaDAO {
     private static final String UPDATE_SQL = "UPDATE facturas SET cliente_id = ?, condicion_pago_id = ?, vendedor_id = ?, fecha = ?, hora = ?, total = ? WHERE id = ?";
     private static final String DELETE_DETALLE_SQL = "DELETE FROM factura_detalle WHERE factura_id = ?";
     private static final String DELETE_SQL = "DELETE FROM facturas WHERE id = ?";
+    private static final String SELECT_STOCK_FOR_UPDATE_SQL = "SELECT cantidad_disponible FROM articulos WHERE id = ? FOR UPDATE";
+    private static final String UPDATE_STOCK_SQL = "UPDATE articulos SET cantidad_disponible = ? WHERE id = ?";
 
     public FacturaDAO() {
     }
@@ -98,6 +102,8 @@ public class FacturaDAO {
                     }
                 }
             }
+
+            aplicarMovimientoInventario(con, f.getDetalles(), -1);
 
             for (FacturaDetalle d : f.getDetalles()) {
                 try (PreparedStatement ps = con.prepareStatement(INSERT_DETALLE_SQL)) {
@@ -313,6 +319,10 @@ public class FacturaDAO {
                 ps.executeUpdate();
             }
 
+            List<FacturaDetalle> detallesPrevios = obtenerDetalles(con, f.getId());
+            aplicarMovimientoInventario(con, detallesPrevios, 1);
+            aplicarMovimientoInventario(con, f.getDetalles(), -1);
+
             try (PreparedStatement ps = con.prepareStatement(DELETE_DETALLE_SQL)) {
                 ps.setInt(1, f.getId());
                 ps.executeUpdate();
@@ -343,11 +353,65 @@ public class FacturaDAO {
     }
 
     public void eliminar(int id) throws SQLException {
-        try (Connection con = ConexionBD.getConnection();
-             PreparedStatement ps = con.prepareStatement(DELETE_SQL)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+        Connection con = null;
+        try {
+            con = ConexionBD.getConnection();
+            con.setAutoCommit(false);
+
+            List<FacturaDetalle> detallesPrevios = obtenerDetalles(con, id);
+            aplicarMovimientoInventario(con, detallesPrevios, 1);
+
+            try (PreparedStatement ps = con.prepareStatement(DELETE_SQL)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            con.commit();
+        } catch (SQLException e) {
+            if (con != null) con.rollback();
+            throw e;
+        } finally {
+            if (con != null) {
+                con.setAutoCommit(true);
+                con.close();
+            }
         }
+    }
+
+    private void aplicarMovimientoInventario(Connection con, List<FacturaDetalle> detalles, int signo) throws SQLException {
+        if (detalles == null || detalles.isEmpty() || signo == 0) return;
+
+        Map<Integer, Integer> cantidadesPorArticulo = new HashMap<>();
+        for (FacturaDetalle d : detalles) {
+            if (d == null || d.getArticuloId() <= 0 || d.getCantidad() <= 0) continue;
+            int cantidadActual = cantidadesPorArticulo.getOrDefault(d.getArticuloId(), 0);
+            cantidadesPorArticulo.put(d.getArticuloId(), cantidadActual + d.getCantidad());
+        }
+
+        for (Map.Entry<Integer, Integer> e : cantidadesPorArticulo.entrySet()) {
+            int articuloId = e.getKey();
+            int delta = signo * e.getValue();
+            int stockActual = obtenerStockActualParaActualizar(con, articuloId);
+            int nuevoStock = stockActual + delta;
+            if (nuevoStock < 0) {
+                throw new SQLException("Inventario insuficiente para el articulo ID " + articuloId + ". Disponible: " + stockActual);
+            }
+            try (PreparedStatement ps = con.prepareStatement(UPDATE_STOCK_SQL)) {
+                ps.setInt(1, nuevoStock);
+                ps.setInt(2, articuloId);
+                ps.executeUpdate();
+            }
+        }
+    }
+
+    private int obtenerStockActualParaActualizar(Connection con, int articuloId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(SELECT_STOCK_FOR_UPDATE_SQL)) {
+            ps.setInt(1, articuloId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("cantidad_disponible");
+            }
+        }
+        throw new SQLException("No existe el articulo ID " + articuloId + " para ajustar inventario.");
     }
 
     private Factura mapearFactura(ResultSet rs) throws SQLException {

@@ -102,7 +102,7 @@
                                     <select class="form-select articulo-select" name="articuloId" required>
                                         <option value="">-- Artículo --</option>
                                         <% for (Articulo a : articulos) { %>
-                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>" <%= d.getArticuloId() == a.getId() ? "selected" : "" %>><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>)</option>
+                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>" data-stock="<%= a.getCantidadDisponible() %>" <%= d.getArticuloId() == a.getId() ? "selected" : "" %>><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>, Stock: <%= a.getCantidadDisponible() %>)</option>
                                         <% } %>
                                     </select>
                                 </td>
@@ -118,7 +118,7 @@
                                     <select class="form-select articulo-select" name="articuloId" required>
                                         <option value="">-- Artículo --</option>
                                         <% for (Articulo a : articulos) { %>
-                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>"><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>)</option>
+                                        <option value="<%= a.getId() %>" data-precio="<%= new java.text.DecimalFormat("0.00").format(a.getPrecioUnitario()) %>" data-stock="<%= a.getCantidadDisponible() %>"><%= a.getDescripcion() %> (RD$ <%= new java.text.DecimalFormat("#,##0.00").format(a.getPrecioUnitario()) %>, Stock: <%= a.getCantidadDisponible() %>)</option>
                                         <% } %>
                                     </select>
                                 </td>

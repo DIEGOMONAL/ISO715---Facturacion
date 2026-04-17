@@ -47,6 +47,7 @@ public class ConexionBD {
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "descripcion VARCHAR(255) NOT NULL, " +
                     "precio_unitario DECIMAL(12,2) NOT NULL, " +
+                    "cantidad_disponible INT NOT NULL DEFAULT 0, " +
                     "estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO'" +
                     ")");
 
@@ -88,6 +89,9 @@ public class ConexionBD {
             // Migraciones para bases de datos existentes (compatibles con MySQL que no soportan IF NOT EXISTS en ADD COLUMN)
             if (!tieneColumna(con, "clientes", "balance")) {
                 st.executeUpdate("ALTER TABLE clientes ADD COLUMN balance DECIMAL(12,2) NOT NULL DEFAULT 0");
+            }
+            if (!tieneColumna(con, "articulos", "cantidad_disponible")) {
+                st.executeUpdate("ALTER TABLE articulos ADD COLUMN cantidad_disponible INT NOT NULL DEFAULT 0");
             }
             if (!tieneColumna(con, "usuarios", "rol")) {
                 st.executeUpdate("ALTER TABLE usuarios ADD COLUMN rol VARCHAR(20) NOT NULL DEFAULT 'USUARIO'");
